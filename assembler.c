@@ -95,6 +95,7 @@ int main(int argc, char *argv[])
 
         /* after doing a readAndParse, you may want to do the following to test the
             opcode */
+        // add (R-type format) 000
         if (strcmp(opcode, "add") == 0) {
             /* do whatever you need to do for opcode "add" */
             inst.field.offset = atoi(arg2);
@@ -104,27 +105,42 @@ int main(int argc, char *argv[])
             inst.field.empty = 0;
             printf("%u\n", inst.intRepresentation);
         }
+        // nand (R-type format) 001
         else if (strcmp(opcode, "nand") == 0) {
             /* do whatever you need to do for opcode "nand" */
+            inst.field.opcode = 1;
         }
+        // lw (I-type format) 010
         else if (strcmp(opcode, "lw") == 0) {
             /* do whatever you need to do for opcode "lw" */
+            inst.field.opcode = 2;
         }
+        // sw (I-type format) 011
         else if (strcmp(opcode, "sw") == 0) {
             /* do whatever you need to do for opcode "sw" */
+            inst.field.opcode = 3;
         }
+        // beq (I-type format) 100
         else if (strcmp(opcode, "beq") == 0) {
             /* do whatever you need to do for opcode "beq" */
+            inst.field.opcode = 4;
         }
+        // jalr (J-type format) 101
         else if (strcmp(opcode, "jalr") == 0) {
             /* do whatever you need to do for opcode "jalr" */
+            inst.field.opcode = 5;
         }
+        // halt (O-type format) 110
         else if (strcmp(opcode, "halt") == 0) {
             /* do whatever you need to do for opcode "halt" */
+            inst.field.opcode = 6;
         }
+        // noop (O-type format) 111
         else if (strcmp(opcode, "noop") == 0) {
             /* do whatever you need to do for opcode "noop" */
+            inst.field.opcode = 7;
         }
+        else exit(1);
 
     }
     return (0);
