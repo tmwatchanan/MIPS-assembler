@@ -39,6 +39,14 @@ typedef union {
     int intRepresentation;
 }  bitset;
 
+typedef struct {
+    char label[MAXLINELENGTH];
+    char arg0[MAXLINELENGTH];
+    bitset inst;
+} instruction;
+
+instruction instMem[65536];
+
 int main(int argc, char *argv[])
 {
     // printf("short is %d bits\n",     CHAR_BIT * sizeof( short )   );
@@ -72,13 +80,8 @@ int main(int argc, char *argv[])
     }
 
     int reg[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-    bitset inst;
-    // inst.field.offset = 1;
-    // inst.field.regB = 2;
-    // inst.field.regA = 1;
-    // inst.field.opcode = 0;
-    // inst.field.empty = 0;
-    // printf("%u\n", inst.intRepresentation);
+    bitset testInst;
+    int lines = 0;
 
     // printf("Total lines = %d\n", countLines(inFilePtr));
 
@@ -91,86 +94,89 @@ int main(int argc, char *argv[])
     /* here is an example for how to use readAndParse to read a line from
     inFilePtr */
     while ( readAndParse(inFilePtr, label, opcode, arg0, arg1, arg2) ) {
+        size_t size = sizeof (instMem[lines].label);
+        strncpy(instMem[lines].label, label, size);
+        instMem[lines].label[size - 1] = '\0';
+        // printf("---> instMem[%d].label = %s ------\n", lines, instMem[lines].label);
+        // printf("[LINE] = %d --------------\n", lines);
         /* reached end of file */
         // printf("%s\t%s\t%s\t%s\t%s\n", label, opcode, arg0, arg1, arg2);
 
         /* after doing a readAndParse, you may want to do the following to test the
             opcode */
-        inst.field.empty = 0; // bit 31-25 of all instructions are 
+        testInst.field.empty = 0; // bit 31-25 of all instructions are 
         // add (R-type format) 000
         if (strcmp(opcode, "add") == 0) {
             /* do whatever you need to do for opcode "add" */
-            inst.field.offset = atoi(arg2);
-            inst.field.regB = atoi(arg1);
-            inst.field.regA = atoi(arg0);
-            inst.field.opcode = 0;
+            testInst.field.offset = atoi(arg2);
+            testInst.field.regB = atoi(arg1);
+            testInst.field.regA = atoi(arg0);
+            testInst.field.opcode = 0;
         }
         // nand (R-type format) 001
         else if (strcmp(opcode, "nand") == 0) {
             /* do whatever you need to do for opcode "nand" */
-            inst.field.offset = atoi(arg2);
-            inst.field.regB = atoi(arg1);
-            inst.field.regA = atoi(arg0);
-            inst.field.opcode = 1;
+            testInst.field.offset = atoi(arg2);
+            testInst.field.regB = atoi(arg1);
+            testInst.field.regA = atoi(arg0);
+            testInst.field.opcode = 1;
         }
         // lw (I-type format) 010
         else if (strcmp(opcode, "lw") == 0) {
             /* do whatever you need to do for opcode "lw" */
-            inst.field.offset = atoi(arg2);
-            inst.field.regB = atoi(arg1);
-            inst.field.regA = atoi(arg0);
-            inst.field.opcode = 2;
+            testInst.field.offset = atoi(arg2);
+            testInst.field.regB = atoi(arg1);
+            testInst.field.regA = atoi(arg0);
+            testInst.field.opcode = 2;
         }
         // sw (I-type format) 011
         else if (strcmp(opcode, "sw") == 0) {
             /* do whatever you need to do for opcode "sw" */
-            inst.field.offset = atoi(arg2);
-            inst.field.regB = atoi(arg1);
-            inst.field.regA = atoi(arg0);
-            inst.field.opcode = 3;
+            testInst.field.offset = atoi(arg2);
+            testInst.field.regB = atoi(arg1);
+            testInst.field.regA = atoi(arg0);
+            testInst.field.opcode = 3;
         }
         // beq (I-type format) 100
         else if (strcmp(opcode, "beq") == 0) {
             /* do whatever you need to do for opcode "beq" */
-            inst.field.offset = atoi(arg2);
-            inst.field.regB = atoi(arg1);
-            inst.field.regA = atoi(arg0);
-            inst.field.opcode = 4;
+            testInst.field.offset = atoi(arg2);
+            testInst.field.regB = atoi(arg1);
+            testInst.field.regA = atoi(arg0);
+            testInst.field.opcode = 4;
         }
         // jalr (J-type format) 101
         else if (strcmp(opcode, "jalr") == 0) {
             /* do whatever you need to do for opcode "jalr" */
-            inst.field.offset = 0;
-            inst.field.regB = atoi(arg1);
-            inst.field.regA = atoi(arg0);
-            inst.field.opcode = 5;
+            testInst.field.offset = 0;
+            testInst.field.regB = atoi(arg1);
+            testInst.field.regA = atoi(arg0);
+            testInst.field.opcode = 5;
         }
         // halt (O-type format) 110
         else if (strcmp(opcode, "halt") == 0) {
             /* do whatever you need to do for opcode "halt" */
-            inst.field.offset = 0;
-            inst.field.regB = 0;
-            inst.field.regA = 0;
-            inst.field.opcode = 6;
+            testInst.field.offset = 0;
+            testInst.field.regB = 0;
+            testInst.field.regA = 0;
+            testInst.field.opcode = 6;
         }
         // noop (O-type format) 111
         else if (strcmp(opcode, "noop") == 0) {
             /* do whatever you need to do for opcode "noop" */
-            inst.field.offset = 0;
-            inst.field.regB = 0;
-            inst.field.regA = 0;
-            inst.field.opcode = 7;
+            testInst.field.offset = 0;
+            testInst.field.regB = 0;
+            testInst.field.regA = 0;
+            testInst.field.opcode = 7;
         }
         // .fill (special format) for symbolic address and immediate
         else if (strcmp(opcode, ".fill") == 0) {
-            // printf("This is .fill\n");  
             char *endptr;
             char *number = arg0;
             strtol(number, &endptr, 10);
-            // if(isdigit((unsigned char) arg0[0]))
             if (*endptr == '\0')
             {
-                inst.intRepresentation = (int) atoi(arg0);
+                testInst.intRepresentation = (int) atoi(arg0);
             }
             else
             {
@@ -178,7 +184,8 @@ int main(int argc, char *argv[])
             }
         }
         else exit(1);
-        printf("%d\n", inst.intRepresentation);
+        printf("%d\n", testInst.intRepresentation);
+        ++lines;
     }
     return (0);
 }
