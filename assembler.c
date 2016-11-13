@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <ctype.h>
 
 #define MAXLINELENGTH 1000
 
@@ -35,7 +36,7 @@ typedef union {
         unsigned int opcode: 3;
         unsigned int empty: 7;
     } field;
-    unsigned int intRepresentation;
+    int intRepresentation;
 }  bitset;
 
 int main(int argc, char *argv[])
@@ -95,6 +96,7 @@ int main(int argc, char *argv[])
 
         /* after doing a readAndParse, you may want to do the following to test the
             opcode */
+        inst.field.empty = 0; // bit 31-25 of all instructions are 
         // add (R-type format) 000
         if (strcmp(opcode, "add") == 0) {
             /* do whatever you need to do for opcode "add" */
@@ -102,46 +104,81 @@ int main(int argc, char *argv[])
             inst.field.regB = atoi(arg1);
             inst.field.regA = atoi(arg0);
             inst.field.opcode = 0;
-            inst.field.empty = 0;
-            printf("%u\n", inst.intRepresentation);
         }
         // nand (R-type format) 001
         else if (strcmp(opcode, "nand") == 0) {
             /* do whatever you need to do for opcode "nand" */
+            inst.field.offset = atoi(arg2);
+            inst.field.regB = atoi(arg1);
+            inst.field.regA = atoi(arg0);
             inst.field.opcode = 1;
         }
         // lw (I-type format) 010
         else if (strcmp(opcode, "lw") == 0) {
             /* do whatever you need to do for opcode "lw" */
+            inst.field.offset = atoi(arg2);
+            inst.field.regB = atoi(arg1);
+            inst.field.regA = atoi(arg0);
             inst.field.opcode = 2;
         }
         // sw (I-type format) 011
         else if (strcmp(opcode, "sw") == 0) {
             /* do whatever you need to do for opcode "sw" */
+            inst.field.offset = atoi(arg2);
+            inst.field.regB = atoi(arg1);
+            inst.field.regA = atoi(arg0);
             inst.field.opcode = 3;
         }
         // beq (I-type format) 100
         else if (strcmp(opcode, "beq") == 0) {
             /* do whatever you need to do for opcode "beq" */
+            inst.field.offset = atoi(arg2);
+            inst.field.regB = atoi(arg1);
+            inst.field.regA = atoi(arg0);
             inst.field.opcode = 4;
         }
         // jalr (J-type format) 101
         else if (strcmp(opcode, "jalr") == 0) {
             /* do whatever you need to do for opcode "jalr" */
+            inst.field.offset = 0;
+            inst.field.regB = atoi(arg1);
+            inst.field.regA = atoi(arg0);
             inst.field.opcode = 5;
         }
         // halt (O-type format) 110
         else if (strcmp(opcode, "halt") == 0) {
             /* do whatever you need to do for opcode "halt" */
+            inst.field.offset = 0;
+            inst.field.regB = 0;
+            inst.field.regA = 0;
             inst.field.opcode = 6;
         }
         // noop (O-type format) 111
         else if (strcmp(opcode, "noop") == 0) {
             /* do whatever you need to do for opcode "noop" */
+            inst.field.offset = 0;
+            inst.field.regB = 0;
+            inst.field.regA = 0;
             inst.field.opcode = 7;
         }
+        // .fill (special format) for symbolic address and immediate
+        else if (strcmp(opcode, ".fill") == 0) {
+            // printf("This is .fill\n");  
+            char *endptr;
+            char *number = arg0;
+            strtol(number, &endptr, 10);
+            // if(isdigit((unsigned char) arg0[0]))
+            if (*endptr == '\0')
+            {
+                inst.intRepresentation = (int) atoi(arg0);
+            }
+            else
+            {
+                
+            }
+        }
         else exit(1);
-
+        printf("%d\n", inst.intRepresentation);
     }
     return (0);
 }
