@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 
         /* after doing a readAndParse, you may want to do the following to test the
             opcode */
-        if (strcmp(opcode.c, "add")) {
+        if (strcmp(opcode, "add") == 0) {
             /* do whatever you need to do for opcode "add" */
             inst.field.offset = atoi(arg2);
             inst.field.regB = atoi(arg1);
@@ -104,25 +104,25 @@ int main(int argc, char *argv[])
             inst.field.empty = 0;
             printf("%u\n", inst.intRepresentation);
         }
-        else if (strcmp(opcode, "nand")) {
+        else if (strcmp(opcode, "nand") == 0) {
             /* do whatever you need to do for opcode "nand" */
         }
-        else if (strcmp(opcode, "lw")) {
+        else if (strcmp(opcode, "lw") == 0) {
             /* do whatever you need to do for opcode "lw" */
         }
-        else if (strcmp(opcode, "sw")) {
+        else if (strcmp(opcode, "sw") == 0) {
             /* do whatever you need to do for opcode "sw" */
         }
-        else if (strcmp(opcode, "beq")) {
+        else if (strcmp(opcode, "beq") == 0) {
             /* do whatever you need to do for opcode "beq" */
         }
-        else if (strcmp(opcode, "jalr")) {
+        else if (strcmp(opcode, "jalr") == 0) {
             /* do whatever you need to do for opcode "jalr" */
         }
-        else if (strcmp(opcode, "halt")) {
+        else if (strcmp(opcode, "halt") == 0) {
             /* do whatever you need to do for opcode "halt" */
         }
-        else if (strcmp(opcode, "noop")) {
+        else if (strcmp(opcode, "noop") == 0) {
             /* do whatever you need to do for opcode "noop" */
         }
 
