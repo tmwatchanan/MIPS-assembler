@@ -30,11 +30,6 @@ int32_t countLines(FILE *file) {
 }
 
 typedef union {
-    uint32_t uintOffset: 16;
-    int32_t intOffset;
-} offset;
-
-typedef union {
     struct {
         int32_t offset: 16;
         uint32_t regB: 3;
@@ -191,6 +186,8 @@ int32_t main(int32_t argc, char *argv[])
         else if (strcmp(instMem[i].opcode, "lw") == 0 || 
                 strcmp(instMem[i].opcode, "sw") == 0)
         {
+            int32_t offsetTest = atoi(instMem[i].arg2);
+            if (offsetTest < -32768 || offsetTest > 32767) exit(1);
             for (int32_t branchAddr = 0; branchAddr != lines; ++branchAddr)
             {
                 if (strcmp(instMem[branchAddr].label, instMem[i].arg2) == 0)
@@ -205,6 +202,8 @@ int32_t main(int32_t argc, char *argv[])
         }
         else if (strcmp(instMem[i].opcode, "beq") == 0)
         {
+            int32_t offsetTest = atoi(instMem[i].arg2);
+            if (offsetTest < -32768 || offsetTest > 32767) exit(1);
             char *endptr;
             char *number = instMem[i].arg2;
             strtol(number, &endptr, 10);
