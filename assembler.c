@@ -29,8 +29,13 @@ int countLines(FILE *file) {
 }
 
 typedef union {
+    unsigned int uintOffset: 16;
+    int intOffset;
+} offset;
+
+typedef union {
     struct {
-        unsigned int offset: 16;
+        int offset: 16;
         unsigned int regB: 3;
         unsigned int regA: 3;
         unsigned int opcode: 3;
@@ -49,6 +54,20 @@ typedef struct {
 } instruction;
 
 instruction instMem[65536];
+
+#define OPCODE_NUM 8
+char possibleOpcode[OPCODE_NUM][MAXLINELENGTH] = {
+    "and",
+    "nand",
+    "lw",
+    "sw",
+    "beq",
+    "jalr",
+    "halt",
+    "noop"
+};
+
+typedef enum { false, true } bool;
 
 int main(int argc, char *argv[])
 {
@@ -98,9 +117,18 @@ int main(int argc, char *argv[])
     inFilePtr */
     size_t size;
     while ( readAndParse(inFilePtr, label, opcode, arg0, arg1, arg2) ) {
-        size = sizeof (instMem[lines].label);
+
         if (strlen(label) < 0 || strlen(label) > 6) exit(1); // label field length exceeded
         if (strlen(label) != 0 && isdigit(label[0])) exit(1); // label is started by number
+        // bool validOpcode = false;
+        // for (int k = 0; k != OPCODE_NUM; ++k)
+        // {
+        //     printf ("in opcode = %s\npossibleOpcode[%d] = %s\n", opcode, k, possibleOpcode[k]);
+        //     if (strcmp(opcode, possibleOpcode[k]) == 0) validOpcode = true;
+        // }
+        // if (!validOpcode) exit(1);
+
+        size = sizeof (instMem[lines].label);
         strncpy(instMem[lines].label, label, size);
         instMem[lines].label[size - 1] = '\0';
 
@@ -156,8 +184,7 @@ int main(int argc, char *argv[])
             }
         }
         else if (strcmp(instMem[i].opcode, "lw") == 0 || 
-                strcmp(instMem[i].opcode, "sw") == 0 ||
-                strcmp(instMem[i].opcode, "beq") == 0)
+                strcmp(instMem[i].opcode, "sw") == 0)
         {
             for (int branchAddr = 0; branchAddr != lines; ++branchAddr)
             {
@@ -168,6 +195,23 @@ int main(int argc, char *argv[])
                     // printf(" ----------- branchAddr of %d = %d\n", i, branchAddr);
                     // printf(" ----------- instMem[%d].arg2 = %s\n", i, instMem[i].arg2);
                     break;
+                }
+            }
+        }
+        else if (strcmp(instMem[i].opcode, "beq") == 0)
+        {
+            char *endptr;
+            char *number = instMem[i].arg2;
+            strtol(number, &endptr, 10);
+            if (*endptr != '\0') // arg2 is not a number
+            {
+                for (int jAddr = 0; jAddr != lines; ++jAddr)
+                {
+                    if (strcmp(instMem[jAddr].label, instMem[i].arg2) == 0)
+                    {
+                        int branchOffset = 0 - jAddr - 1;
+                        snprintf(instMem[i].arg2, sizeof instMem[i].arg2, "%d", branchOffset);
+                    }
                 }
             }
         }
@@ -189,7 +233,6 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i != lines; ++i)
     {
-
         /* after doing a readAndParse, you may want to do the following to test the
             opcode */
         // printf("[%d]@ opcode = %s\n", i, instMem[i].opcode);
