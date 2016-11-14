@@ -5,18 +5,19 @@
 #include <string.h>
 #include <limits.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #define MAXLINELENGTH 1000
 
-int readAndParse(FILE *, char *, char *, char *, char *, char *);
-int isNumber(char *);
-int decimalToBinary(int n);
+int32_t readAndParse(FILE *, char *, char *, char *, char *, char *);
+int32_t isNumber(char *);
+int32_t decimalToBinary(int32_t n);
 
 /* Reads a file and returns the number of lines in this file. */
-int countLines(FILE *file) {
-    int lines = 0;
-    int c;
-    int last = '\n';
+int32_t countLines(FILE *file) {
+    int32_t lines = 0;
+    int32_t c;
+    int32_t last = '\n';
     while (EOF != (c = fgetc(file))) {
         if (c == '\n' && last != '\n') {
             ++lines;
@@ -29,19 +30,19 @@ int countLines(FILE *file) {
 }
 
 typedef union {
-    unsigned int uintOffset: 16;
-    int intOffset;
+    uint32_t uintOffset: 16;
+    int32_t intOffset;
 } offset;
 
 typedef union {
     struct {
-        int offset: 16;
-        unsigned int regB: 3;
-        unsigned int regA: 3;
-        unsigned int opcode: 3;
-        unsigned int empty: 7;
+        int32_t offset: 16;
+        uint32_t regB: 3;
+        uint32_t regA: 3;
+        uint32_t opcode: 3;
+        uint32_t empty: 7;
     } field;
-    int intRepresentation;
+    int32_t intRepresentation;
 }  bitset;
 
 typedef struct {
@@ -70,10 +71,10 @@ char possibleOpcode[OPCODE_NUM][MAXLINELENGTH] = {
 
 typedef enum { false, true } bool;
 
-int main(int argc, char *argv[])
+int32_t main(int32_t argc, char *argv[])
 {
     // printf("short is %d bits\n",     CHAR_BIT * sizeof( short )   );
-    // printf("int is %d bits\n",       CHAR_BIT * sizeof( int  )    );
+    // printf("int32_t is %d bits\n",       CHAR_BIT * sizeof( int32_t  )    );
     // printf("long is %d bits\n",      CHAR_BIT * sizeof( long )    );
     // printf("long long is %d bits\n", CHAR_BIT * sizeof(long long) );
 
@@ -102,9 +103,9 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    int reg[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    int32_t reg[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     bitset testInst;
-    int lines = 0;
+    int32_t lines = 0;
 
     // printf("Total lines = %d\n", countLines(inFilePtr));
 
@@ -122,7 +123,7 @@ int main(int argc, char *argv[])
         if (strlen(label) < 0 || strlen(label) > 6) exit(1); // label field length exceeded
         if (strlen(label) != 0 && isdigit(label[0])) exit(1); // label is started by number
         bool validOpcode = false;
-        for (int k = 0; k != OPCODE_NUM; ++k)
+        for (int32_t k = 0; k != OPCODE_NUM; ++k)
         {
             if (strcmp(opcode, possibleOpcode[k]) == 0)
             {
@@ -160,7 +161,7 @@ int main(int argc, char *argv[])
     }
     /* reached end of file */
 
-    for (int i = 0;i != lines; ++i)
+    for (int32_t i = 0;i != lines; ++i)
     {
         if (strcmp(instMem[i].opcode, ".fill") == 0)
         {
@@ -170,7 +171,7 @@ int main(int argc, char *argv[])
             if (*endptr != '\0') // arg0 is not a number
             {
                 // printf("%s is not a number\n", instMem[i].arg0);
-                for (int jAddr = 0; jAddr != lines; ++jAddr)
+                for (int32_t jAddr = 0; jAddr != lines; ++jAddr)
                 {
                     if (strcmp(instMem[jAddr].label, instMem[i].arg0) == 0)
                     {
@@ -190,7 +191,7 @@ int main(int argc, char *argv[])
         else if (strcmp(instMem[i].opcode, "lw") == 0 || 
                 strcmp(instMem[i].opcode, "sw") == 0)
         {
-            for (int branchAddr = 0; branchAddr != lines; ++branchAddr)
+            for (int32_t branchAddr = 0; branchAddr != lines; ++branchAddr)
             {
                 if (strcmp(instMem[branchAddr].label, instMem[i].arg2) == 0)
                 {
@@ -209,11 +210,11 @@ int main(int argc, char *argv[])
             strtol(number, &endptr, 10);
             if (*endptr != '\0') // arg2 is not a number
             {
-                for (int jAddr = 0; jAddr != lines; ++jAddr)
+                for (int32_t jAddr = 0; jAddr != lines; ++jAddr)
                 {
                     if (strcmp(instMem[jAddr].label, instMem[i].arg2) == 0)
                     {
-                        int branchOffset = 0 - jAddr - 1;
+                        int32_t branchOffset = 0 - jAddr - 1;
                         snprintf(instMem[i].arg2, sizeof instMem[i].arg2, "%d", branchOffset);
                     }
                 }
@@ -222,7 +223,7 @@ int main(int argc, char *argv[])
 
         if (strlen(instMem[i].label) != 0) // duplicated label checking
         {
-            for (int j = i + 1; j < lines; ++j)
+            for (int32_t j = i + 1; j < lines; ++j)
             {
                 // printf ("instMem[%d]].label = %s\ninstMem[%d].label = %s\n", i, instMem[i].label, j, instMem[j].label);
                 if (strcmp(instMem[i].label, instMem[j].label) == 0 &&
@@ -235,7 +236,7 @@ int main(int argc, char *argv[])
 
     // printf("%s\t%s\t%s\t%s\t%s\n", label, opcode, arg0, arg1, arg2);
 
-    for (int i = 0; i != lines; ++i)
+    for (int32_t i = 0; i != lines; ++i)
     {
         /* after doing a readAndParse, you may want to do the following to test the
             opcode */
@@ -308,7 +309,7 @@ int main(int argc, char *argv[])
         // .fill (special format) for symbolic address and immediate
         else if (strcmp(instMem[i].opcode, ".fill") == 0) {
             // printf("instMem[i].arg0 = %s\n", instMem[i].arg0);
-            instMem[i].inst.intRepresentation = (int) atoi(instMem[i].arg0);
+            instMem[i].inst.intRepresentation = (int32_t) atoi(instMem[i].arg0);
         }
         else exit(1);
         fprintf(outFilePtr, "%d\n", instMem[i].inst.intRepresentation);
@@ -328,7 +329,7 @@ int main(int argc, char *argv[])
  *
  * exit(1) if line is too long.
  */
-int readAndParse(FILE *inFilePtr, char *label, char *opcode, char *arg0,
+int32_t readAndParse(FILE *inFilePtr, char *label, char *opcode, char *arg0,
                  char *arg1, char *arg2)
 {
     char line[MAXLINELENGTH];
@@ -366,18 +367,18 @@ int readAndParse(FILE *inFilePtr, char *label, char *opcode, char *arg0,
     return (1);
 }
 
-int isNumber(char *string)
+int32_t isNumber(char *string)
 {
     /* return 1 if string is a number */
-    int i;
+    int32_t i;
     return ( (sscanf(string, "%d", &i)) == 1);
 }
 
 /* Function to convert a decinal number to binary number */
-int decimalToBinary(int n)
+int32_t decimalToBinary(int32_t n)
 {
-    int remainder;
-    int binary = 0, i = 1;
+    int32_t remainder;
+    int32_t binary = 0, i = 1;
 
     while (n != 0)
     {
