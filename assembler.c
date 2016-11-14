@@ -99,6 +99,8 @@ int main(int argc, char *argv[])
     size_t size;
     while ( readAndParse(inFilePtr, label, opcode, arg0, arg1, arg2) ) {
         size = sizeof (instMem[lines].label);
+        if (strlen(label) < 0 || strlen(label) > 6) exit(1); // label field length exceeded
+        if (strlen(label) != 0 && isdigit(label[0])) exit(1); // label is started by number
         strncpy(instMem[lines].label, label, size);
         instMem[lines].label[size - 1] = '\0';
 
@@ -133,7 +135,7 @@ int main(int argc, char *argv[])
             char *endptr;
             char *number = instMem[i].arg0;
             strtol(number, &endptr, 10);
-            if (*endptr != '\0')
+            if (*endptr != '\0') // arg0 is not a number
             {
                 // printf("%s is not a number\n", instMem[i].arg0);
                 for (int jAddr = 0; jAddr != lines; ++jAddr)
@@ -169,10 +171,17 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        // else if (strcmp(instMem[i].opcode, "beq") == 0)
-        // {
 
-        // }
+        if (strlen(instMem[i].label) != 0)
+        {
+            for (int j = i + 1; j < lines; ++j)
+            {
+                // printf ("instMem[%d]].label = %s\ninstMem[%d].label = %s\n", i, instMem[i].label, j, instMem[j].label);
+                if (strcmp(instMem[i].label, instMem[j].label) == 0 &&
+                    strlen(instMem[j].label) != 0)
+                    exit(1);
+            }
+        }
     }
 
 
