@@ -55,16 +55,17 @@ typedef struct {
 
 instruction instMem[65536];
 
-#define OPCODE_NUM 8
+#define OPCODE_NUM 9
 char possibleOpcode[OPCODE_NUM][MAXLINELENGTH] = {
-    "and",
+    "add",
     "nand",
     "lw",
     "sw",
     "beq",
     "jalr",
     "halt",
-    "noop"
+    "noop",
+    ".fill"
 };
 
 typedef enum { false, true } bool;
@@ -120,13 +121,16 @@ int main(int argc, char *argv[])
 
         if (strlen(label) < 0 || strlen(label) > 6) exit(1); // label field length exceeded
         if (strlen(label) != 0 && isdigit(label[0])) exit(1); // label is started by number
-        // bool validOpcode = false;
-        // for (int k = 0; k != OPCODE_NUM; ++k)
-        // {
-        //     printf ("in opcode = %s\npossibleOpcode[%d] = %s\n", opcode, k, possibleOpcode[k]);
-        //     if (strcmp(opcode, possibleOpcode[k]) == 0) validOpcode = true;
-        // }
-        // if (!validOpcode) exit(1);
+        bool validOpcode = false;
+        for (int k = 0; k != OPCODE_NUM; ++k)
+        {
+            if (strcmp(opcode, possibleOpcode[k]) == 0)
+            {
+                validOpcode = true;
+                break;
+            }
+        }
+        if (!validOpcode) exit(1); // Invalid opcode checking
 
         size = sizeof (instMem[lines].label);
         strncpy(instMem[lines].label, label, size);
@@ -216,7 +220,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        if (strlen(instMem[i].label) != 0)
+        if (strlen(instMem[i].label) != 0) // duplicated label checking
         {
             for (int j = i + 1; j < lines; ++j)
             {
