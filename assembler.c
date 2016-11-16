@@ -37,7 +37,7 @@ typedef union {
         uint32_t opcode: 3;
         uint32_t empty: 7;
     } field;
-    int32_t intRepresentation;
+    int32_t intRepresentation; 
 }  bitset;
 
 typedef struct {
