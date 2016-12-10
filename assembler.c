@@ -213,8 +213,11 @@ int32_t main(int32_t argc, char *argv[])
                 {
                     if (strcmp(instMem[jAddr].label, instMem[i].arg2) == 0)
                     {
-                        int32_t branchOffset = 0 - jAddr - 1;
+                        int32_t branchOffset;
+                        if (jAddr < 0) branchOffset = (-1) * (jAddr - i + 1);
+                        else branchOffset = jAddr - i - 1;
                         snprintf(instMem[i].arg2, sizeof instMem[i].arg2, "%d", branchOffset);
+                        // printf("%s --jump-to--> %s\n", instMem[jAddr].label, instMem[i].arg2);
                     }
                 }
             }
