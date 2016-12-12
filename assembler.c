@@ -10,8 +10,6 @@
 #define MAXLINELENGTH 1000
 
 int32_t readAndParse(FILE *, char *, char *, char *, char *, char *);
-int32_t isNumber(char *);
-int32_t decimalToBinary(int32_t n);
 
 /* Reads a file and returns the number of lines in this file. */
 int32_t countLines(FILE *file) {
@@ -367,27 +365,4 @@ int32_t readAndParse(FILE *inFilePtr, char *label, char *opcode, char *arg0,
     sscanf(ptr, "%*[\t\n ]%[^\t\n ]%*[\t\n ]%[^\t\n ]%*[\t\n ]%[^\t\n ]%*[\t\n ]%[^\t\n ]",
            opcode, arg0, arg1, arg2);
     return (1);
-}
-
-int32_t isNumber(char *string)
-{
-    /* return 1 if string is a number */
-    int32_t i;
-    return ( (sscanf(string, "%d", &i)) == 1);
-}
-
-/* Function to convert a decinal number to binary number */
-int32_t decimalToBinary(int32_t n)
-{
-    int32_t remainder;
-    int32_t binary = 0, i = 1;
-
-    while (n != 0)
-    {
-        remainder = n % 2;
-        n = n / 2;
-        binary = binary + (remainder * i);
-        i = i * 10;
-    }
-    return binary;
 }
