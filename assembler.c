@@ -7,12 +7,17 @@
 
 #define MAXLINELENGTH 1000
 
-int32_t readAndParse(FILE *, char *, char *, char *, char *, char *);
+typedef enum { false, true } bool;
 
-#define CopyInstruction(src, dest)\
+int32_t readAndParse(FILE *, char *, char *, char *, char *, char *);
+bool isNumber(char *);
+
+#define COPY_INSTRUCTION(src, dest)\
     size = sizeof (dest);\
     strncpy(dest, src, size);\
-    dest[size - 1] = '\0';\
+    dest[size - 1] = '\0';
+
+#define FIELD(inst_field) instMem[i].inst.field.inst_field
 
 /* Reads a file and returns the number of lines in this file. */
 int32_t countLines(FILE *file) {
@@ -65,11 +70,10 @@ char possibleOpcode[OPCODE_NUM][MAXLINELENGTH] = {
     ".fill"
 };
 
-typedef enum { false, true } bool;
-
 int32_t main(int32_t argc, char *argv[])
 {
     // printf("short is %d bits\n",     CHAR_BIT * sizeof( short )   );
+    // printf("int32_t is %d bits\n",       CHAR_BIT * sizeof( int32_t  )    );
     // printf("int32_t is %d bits\n",       CHAR_BIT * sizeof( int32_t  )    );
     // printf("long is %d bits\n",      CHAR_BIT * sizeof( long )    );
     // printf("long long is %d bits\n", CHAR_BIT * sizeof(long long) );
@@ -106,13 +110,11 @@ int32_t main(int32_t argc, char *argv[])
         beginning of the file */
     rewind(inFilePtr);
 
-    // printf("label\topcode\targ0\targ1\targ2\n");
-
-    /* here is an example for how to use readAndParse to read a line from
+    /* here is an example for how to use readAndParse to  from
     inFilePtr */
     size_t size;
-    while ( readAndParse(inFilePtr, label, opcode, arg0, arg1, arg2) ) {
-
+    while ( readAndParse(inFilePtr, label, opcode, arg0, arg1, arg2) ) // while loop for reading every single line
+    {
         if (strlen(label) < 0 || strlen(label) > 6) exit(1); // label field length exceeded
         if (strlen(label) != 0 && isdigit(label[0])) exit(1); // label is started by number
         bool validOpcode = false;
@@ -126,29 +128,21 @@ int32_t main(int32_t argc, char *argv[])
         }
         if (!validOpcode) exit(1); // Invalid opcode checking
 
-        CopyInstruction(label, instMem[lines].label);
-        CopyInstruction(opcode, instMem[lines].opcode);
-        CopyInstruction(arg0, instMem[lines].arg0);
-        CopyInstruction(arg1, instMem[lines].arg1);
-        CopyInstruction(arg2, instMem[lines].arg2);
-        // printf("%s\t%s\t%s\t%s\t%s\n", instMem[lines].label, instMem[lines].opcode, instMem[lines].arg0, instMem[lines].arg1, instMem[lines].arg2);
-
-        // printf("---> instMem[%d].label = %s ------\n", lines, instMem[lines].label);
-        // printf("[LINE] = %d --------------\n", lines);
+        COPY_INSTRUCTION(label, instMem[lines].label);
+        COPY_INSTRUCTION(opcode, instMem[lines].opcode);
+        COPY_INSTRUCTION(arg0, instMem[lines].arg0);
+        COPY_INSTRUCTION(arg1, instMem[lines].arg1);
+        COPY_INSTRUCTION(arg2, instMem[lines].arg2);
         ++lines;
     }
-    /* reached end of file */
+    /* reached end of file by reading every single line */
 
-    for (int32_t i = 0;i != lines; ++i)
+    for (int32_t i = 0;i != lines; ++i) // Checking opcode of each line
     {
-        if (strcmp(instMem[i].opcode, ".fill") == 0)
+        if (strcmp(instMem[i].opcode, ".fill") == 0) // opcode is .fill
         {
-            char *endptr;
-            char *number = instMem[i].arg0;
-            strtol(number, &endptr, 10);
-            if (*endptr != '\0') // arg0 is not a number
+            if (isNumber(instMem[i].arg0)) // arg0 is not a number
             {
-                // printf("%s is not a number\n", instMem[i].arg0);
                 for (int32_t jAddr = 0; jAddr != lines; ++jAddr)
                 {
                     if (strcmp(instMem[jAddr].label, instMem[i].arg0) == 0)
@@ -156,18 +150,15 @@ int32_t main(int32_t argc, char *argv[])
                         size = sizeof (instMem[i].arg1);
                         strncpy(instMem[i].arg1, instMem[jAddr].label, size);
                         instMem[i].arg1[size - 1] = '\0';
-                        // printf("-------> instMem[%d].arg1 = %s\n", i, instMem[i].arg1);
                         snprintf(instMem[i].arg1, sizeof instMem[i].arg1, "%d", jAddr);
                         snprintf(instMem[i].arg0, sizeof instMem[i].arg0, "%d", jAddr);
-                        // printf(" ----------- jAddr of %d = %d\n", i, jAddr);
-                        // printf(" ----------- instMem[%d].arg0 = %s\n", i, instMem[i].arg0);
                         break;
                     }
                 }
             }
         }
-        else if (strcmp(instMem[i].opcode, "lw") == 0 || 
-                strcmp(instMem[i].opcode, "sw") == 0)
+        else if (strcmp(instMem[i].opcode, "lw") == 0 || // opcode is lw
+                strcmp(instMem[i].opcode, "sw") == 0) // opcode is sw
         {
             int32_t offsetTest = atoi(instMem[i].arg2);
             if (offsetTest < -32768 || offsetTest > 32767) exit(1);
@@ -175,22 +166,16 @@ int32_t main(int32_t argc, char *argv[])
             {
                 if (strcmp(instMem[branchAddr].label, instMem[i].arg2) == 0)
                 {
-                    // printf (" --> @ instMem[%d].label = %d\n", branchAddr, branchAddr);
                     snprintf(instMem[i].arg2, sizeof instMem[i].arg2, "%d", branchAddr);
-                    // printf(" ----------- branchAddr of %d = %d\n", i, branchAddr);
-                    // printf(" ----------- instMem[%d].arg2 = %s\n", i, instMem[i].arg2);
                     break;
                 }
             }
         }
-        else if (strcmp(instMem[i].opcode, "beq") == 0)
+        else if (strcmp(instMem[i].opcode, "beq") == 0) // opcode is beq
         {
             int32_t offsetTest = atoi(instMem[i].arg2);
             if (offsetTest < -32768 || offsetTest > 32767) exit(1);
-            char *endptr;
-            char *number = instMem[i].arg2;
-            strtol(number, &endptr, 10);
-            if (*endptr != '\0') // arg2 is not a number
+            if (isNumber(instMem[i].arg2)) // arg2 is not a number
             {
                 for (int32_t jAddr = 0; jAddr != lines; ++jAddr)
                 {
@@ -200,7 +185,6 @@ int32_t main(int32_t argc, char *argv[])
                         if (jAddr < 0) branchOffset = (-1) * (jAddr - i + 1);
                         else branchOffset = jAddr - i - 1;
                         snprintf(instMem[i].arg2, sizeof instMem[i].arg2, "%d", branchOffset);
-                        // printf("%s --jump-to--> %s\n", instMem[jAddr].label, instMem[i].arg2);
                     }
                 }
             }
@@ -210,7 +194,6 @@ int32_t main(int32_t argc, char *argv[])
         {
             for (int32_t j = i + 1; j < lines; ++j)
             {
-                // printf ("instMem[%d]].label = %s\ninstMem[%d].label = %s\n", i, instMem[i].label, j, instMem[j].label);
                 if (strcmp(instMem[i].label, instMem[j].label) == 0 &&
                     strlen(instMem[j].label) != 0)
                     exit(1);
@@ -218,86 +201,77 @@ int32_t main(int32_t argc, char *argv[])
         }
     }
 
-
-    // printf("%s\t%s\t%s\t%s\t%s\n", label, opcode, arg0, arg1, arg2);
-
     for (int32_t i = 0; i != lines; ++i)
     {
         /* after doing a readAndParse, you may want to do the following to test the
             opcode */
-        // printf("[%d]@ opcode = %s\n", i, instMem[i].opcode);
         instMem[i].inst.field.empty = 0; // bit 31-25 of all instructions are
         // add (R-type format) 000
         if (strcmp(instMem[i].opcode, "add") == 0) {
-            /* do whatever you need to do for opcode "add" */
-            instMem[i].inst.field.offset = atoi(instMem[i].arg2);
-            instMem[i].inst.field.regB = atoi(instMem[i].arg1);
-            instMem[i].inst.field.regA = atoi(instMem[i].arg0);
-            instMem[i].inst.field.opcode = 0;
+            FIELD(offset) = atoi(instMem[i].arg2);
+            FIELD(regB) = atoi(instMem[i].arg1);
+            FIELD(regA) = atoi(instMem[i].arg0);
+            FIELD(opcode) = 0;
         }
         // nand (R-type format) 001
         else if (strcmp(instMem[i].opcode, "nand") == 0) {
-            /* do whatever you need to do for opcode "nand" */
-            instMem[i].inst.field.offset = atoi(instMem[i].arg2);
-            instMem[i].inst.field.regB = atoi(instMem[i].arg1);
-            instMem[i].inst.field.regA = atoi(instMem[i].arg0);
-            instMem[i].inst.field.opcode = 1;
+            FIELD(offset) = atoi(instMem[i].arg2);
+            FIELD(regB) = atoi(instMem[i].arg1);
+            FIELD(regA) = atoi(instMem[i].arg0);
+            FIELD(opcode) = 1;
         }
         // lw (I-type format) 010
         else if (strcmp(instMem[i].opcode, "lw") == 0) {
-            /* do whatever you need to do for opcode "lw" */
-            instMem[i].inst.field.offset = atoi(instMem[i].arg2);
-            instMem[i].inst.field.regB = atoi(instMem[i].arg1);
-            instMem[i].inst.field.regA = atoi(instMem[i].arg0);
-            instMem[i].inst.field.opcode = 2;
+            FIELD(offset) = atoi(instMem[i].arg2);
+            FIELD(regB) = atoi(instMem[i].arg1);
+            FIELD(regA) = atoi(instMem[i].arg0);
+            FIELD(opcode) = 2;
         }
         // sw (I-type format) 011
         else if (strcmp(instMem[i].opcode, "sw") == 0) {
-            /* do whatever you need to do for opcode "sw" */
-            instMem[i].inst.field.offset = atoi(instMem[i].arg2);
-            instMem[i].inst.field.regB = atoi(instMem[i].arg1);
-            instMem[i].inst.field.regA = atoi(instMem[i].arg0);
-            instMem[i].inst.field.opcode = 3;
+            FIELD(offset) = atoi(instMem[i].arg2);
+            FIELD(regB) = atoi(instMem[i].arg1);
+            FIELD(regA) = atoi(instMem[i].arg0);
+            FIELD(opcode) = 3;
         }
         // beq (I-type format) 100
         else if (strcmp(instMem[i].opcode, "beq") == 0) {
-            /* do whatever you need to do for opcode "beq" */
-            instMem[i].inst.field.offset = atoi(instMem[i].arg2);
-            instMem[i].inst.field.regB = atoi(instMem[i].arg1);
-            instMem[i].inst.field.regA = atoi(instMem[i].arg0);
-            instMem[i].inst.field.opcode = 4;
+            FIELD(offset) = atoi(instMem[i].arg2);
+            FIELD(regB) = atoi(instMem[i].arg1);
+            FIELD(regA) = atoi(instMem[i].arg0);
+            FIELD(opcode) = 4;
         }
         // jalr (J-type format) 101
         else if (strcmp(instMem[i].opcode, "jalr") == 0) {
-            /* do whatever you need to do for opcode "jalr" */
-            instMem[i].inst.field.offset = 0;
-            instMem[i].inst.field.regB = atoi(instMem[i].arg1);
-            instMem[i].inst.field.regA = atoi(instMem[i].arg0);
-            instMem[i].inst.field.opcode = 5;
+            FIELD(offset) = 0;
+            FIELD(regB) = atoi(instMem[i].arg1);
+            FIELD(regA) = atoi(instMem[i].arg0);
+            FIELD(opcode) = 5;
         }
         // halt (O-type format) 110
         else if (strcmp(instMem[i].opcode, "halt") == 0) {
-            /* do whatever you need to do for opcode "halt" */
-            instMem[i].inst.field.offset = 0;
-            instMem[i].inst.field.regB = 0;
-            instMem[i].inst.field.regA = 0;
-            instMem[i].inst.field.opcode = 6;
+            FIELD(offset) = 0;
+            FIELD(regB) = 0;
+            FIELD(regA) = 0;
+            FIELD(opcode) = 6;
         }
         // noop (O-type format) 111
         else if (strcmp(instMem[i].opcode, "noop") == 0) {
-            /* do whatever you need to do for opcode "noop" */
-            instMem[i].inst.field.offset = 0;
-            instMem[i].inst.field.regB = 0;
-            instMem[i].inst.field.regA = 0;
-            instMem[i].inst.field.opcode = 7;
+            FIELD(offset) = 0;
+            FIELD(regB) = 0;
+            FIELD(regA) = 0;
+            FIELD(opcode) = 7;
         }
         // .fill (special format) for symbolic address and immediate
         else if (strcmp(instMem[i].opcode, ".fill") == 0) {
-            // printf("instMem[i].arg0 = %s\n", instMem[i].arg0);
             instMem[i].inst.intRepresentation = (int32_t) atoi(instMem[i].arg0);
         }
-        else exit(1);
+        else exit(1); // undefined opcode exit
+
+        // write the result machine codes into output file
         fprintf(outFilePtr, "%d\n", instMem[i].inst.intRepresentation);
+
+        // printf result
         printf("(address %d): %d (hex 0x%x)\n", i, instMem[i].inst.intRepresentation, instMem[i].inst.intRepresentation);
     }
     return (0);
@@ -350,4 +324,13 @@ int32_t readAndParse(FILE *inFilePtr, char *label, char *opcode, char *arg0,
     sscanf(ptr, "%*[\t\n ]%[^\t\n ]%*[\t\n ]%[^\t\n ]%*[\t\n ]%[^\t\n ]%*[\t\n ]%[^\t\n ]",
            opcode, arg0, arg1, arg2);
     return (1);
+}
+
+bool isNumber(char *string)
+{
+    /* return 1 if string is a number */
+    char *endptr;
+    char *number = string;
+    strtol(number, &endptr, 10);
+    return (*endptr != '\0'); // string is not a number
 }
