@@ -1,5 +1,3 @@
-/* Assembler code fragment */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -10,6 +8,11 @@
 #define MAXLINELENGTH 1000
 
 int32_t readAndParse(FILE *, char *, char *, char *, char *, char *);
+
+#define CopyInstruction(src, dest)\
+    size = sizeof (dest);\
+    strncpy(dest, src, size);\
+    dest[size - 1] = '\0';\
 
 /* Reads a file and returns the number of lines in this file. */
 int32_t countLines(FILE *file) {
@@ -77,8 +80,7 @@ int32_t main(int32_t argc, char *argv[])
          arg1[MAXLINELENGTH], arg2[MAXLINELENGTH];
 
     if (argc != 3) {
-        printf("error: usage: %s <assembly-code-file> <machine-code-file>\n",
-               argv[0]);
+        printf("error: usage: %s <assembly-code-file> <machine-code-file>\n", argv[0]);
         exit(1);
     }
 
@@ -99,8 +101,6 @@ int32_t main(int32_t argc, char *argv[])
     int32_t reg[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     bitset testInst;
     int32_t lines = 0;
-
-    // printf("Total lines = %d\n", countLines(inFilePtr));
 
     /* this is how to rewind the file ptr so that you start reading from the
         beginning of the file */
@@ -126,26 +126,11 @@ int32_t main(int32_t argc, char *argv[])
         }
         if (!validOpcode) exit(1); // Invalid opcode checking
 
-        size = sizeof (instMem[lines].label);
-        strncpy(instMem[lines].label, label, size);
-        instMem[lines].label[size - 1] = '\0';
-
-        size = sizeof (instMem[lines].opcode);
-        strncpy(instMem[lines].opcode, opcode, size);
-        instMem[lines].opcode[size - 1] = '\0';
-
-        size = sizeof (instMem[lines].arg0);
-        strncpy(instMem[lines].arg0, arg0, size);
-        instMem[lines].arg0[size - 1] = '\0';
-
-        size = sizeof (instMem[lines].arg1);
-        strncpy(instMem[lines].arg1, arg1, size);
-        instMem[lines].arg1[size - 1] = '\0';
-
-        size = sizeof (instMem[lines].arg2);
-        strncpy(instMem[lines].arg2, arg2, size);
-        instMem[lines].arg2[size - 1] = '\0';
-
+        CopyInstruction(label, instMem[lines].label);
+        CopyInstruction(opcode, instMem[lines].opcode);
+        CopyInstruction(arg0, instMem[lines].arg0);
+        CopyInstruction(arg1, instMem[lines].arg1);
+        CopyInstruction(arg2, instMem[lines].arg2);
         // printf("%s\t%s\t%s\t%s\t%s\n", instMem[lines].label, instMem[lines].opcode, instMem[lines].arg0, instMem[lines].arg1, instMem[lines].arg2);
 
         // printf("---> instMem[%d].label = %s ------\n", lines, instMem[lines].label);
